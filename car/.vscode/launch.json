@@ -1,19 +1,20 @@
 {
     "version": "0.2.0",
     "configurations": [
+    
         {
             "name": "Cortex Debug",
             "cwd": "${workspaceFolder}",
             "executable": "../car_out/PAIR_AES.elf",
-            "armToolchainPath": "C:/gcc-arm-none-eabi/bin/",
+            "armToolchainPath": "/Applications/ArmGNUToolchain/12.2.rel1/arm-none-eabi/bin",
             "request": "launch",
             "type": "cortex-debug",
             "runToEntryPoint": "main",
             "servertype": "openocd",
             "device": "TM4C123GH6PM",
             "configFiles": [
-                "C:/openocd/scripts/interface/ti-icdi.cfg",
-                "C:/openocd/scripts/board/ti_ek-tm4c123gxl.cfg"
+                "interface/ti-icdi.cfg",
+                "board/ti_ek-tm4c123gxl.cfg"
             ],
             "svdFile": "../debug/TM4C123GH6PM.svd"
         }

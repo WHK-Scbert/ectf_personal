@@ -70,7 +70,7 @@ car: copy_artifacts
 # example AES rules to build in tiny-AES-c: https://github.com/kokke/tiny-AES-c
 # make sure submodule has been pulled (run `git submodule update --init`)
 # uncomment next line to activate
-# EXAMPLE_AES=foo
+EXAMPLE_AES=foo
 ifdef EXAMPLE_AES
 # path to crypto library
 CRYPTOPATH=${ROOT}/lib/tiny-AES-c
@@ -114,6 +114,7 @@ ${COMPILER}:
 
 # for each source file that needs to be compiled besides the file that defines `main`
 
+${COMPILER}/firmware.axf: ${COMPILER}/aes_test.o
 ${COMPILER}/firmware.axf: ${COMPILER}/uart.o
 ${COMPILER}/firmware.axf: ${COMPILER}/board_link.o
 ${COMPILER}/firmware.axf: ${COMPILER}/firmware.o

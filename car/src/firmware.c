@@ -89,49 +89,102 @@ int main(void) {
 /**
  * @brief Function that handles unlocking of car
  */
-void unlockCar(void) {
-  // Create a message struct variable for receiving data
-  MESSAGE_PACKET message;
-  uint8_t buffer[256];
-  message.buffer = buffer;
+// void unlockCar(void) {
+//   // Create a message struct variable for receiving data
+//   MESSAGE_PACKET message;
+//   uint8_t buffer[256];
+//   message.buffer = buffer;
 
-  // Receive packet with some error checking
+//   // Receive packet with some error checking
+//   receive_board_message_by_type(&message, UNLOCK_MAGIC);
+
+//   // Pad payload to a string
+//   message.buffer[message.message_len] = 0;
+
+//   // If the data transfer is the password, unlock
+//   if (!strcmp((char *)(message.buffer), (char *)pass)) {
+//     uint8_t eeprom_message[64];
+//     // Read last 64B of EEPROM
+//     EEPROMRead((uint32_t *)eeprom_message, UNLOCK_EEPROM_LOC,
+//                UNLOCK_EEPROM_SIZE);
+
+//     // Get flag for boot reference design, and replace end of unlock message
+//     // YOU ARE NOT ALLOWED TO DO THIS IN YOUR DESIGN
+//     char flag[28];
+//     for (int i = 0; aseiFuengleR[i]; i++) {
+//         flag[i] = deobfuscate(aseiFuengleR[i], djFIehjkklIH[i]);
+//         flag[i+1] = 0;
+//     }
+
+//     int j = UNLOCK_EEPROM_SIZE - 28;
+//     for (int i = 0; i < 28; i++) {
+//         eeprom_message[j] = (uint8_t)(flag[i]);
+//         j++;
+//     }
+
+//     // Write out full flag if applicable
+//     uart_write(HOST_UART, eeprom_message, UNLOCK_EEPROM_SIZE);
+
+//     sendAckSuccess();
+
+//     startCar();
+//   } else {
+//     sendAckFailure();
+//   }
+// }
+void unlockCar(void) {
+  // Wait for request for authentication from the fob
+  MESSAGE_PACKET message;
+  receive_board_message_by_type(&message, AUTHENTICATE_MAGIC);
+
+  // Generate a random challenge value
+  uint8_t challenge[64];
+  generate_challenge(challenge, 2000);
+
+  // Send the challenge value to the fob
+  MESSAGE_PACKET challenge_message;
+  challenge_message.message_len = 64;
+  challenge_message.magic = AUTHENTICATE_MAGIC;
+  challenge_message.buffer = challenge;
+  send_board_message(&challenge_message);
+
+  // Wait for response from the fob containing the challenge response
+  MESSAGE_PACKET response; 
+  receive_board_message_by_type(&response, AUTHENTICATE_MAGIC);
+  uint8_t challenge_response[64];
+  memcpy(challenge_response, response.buffer, 64);
+  decrypt(challenge_response);
+
+  // Verify that the challenge response is correct
+  for (int i = 0; i < 64; i++) {
+    if (challenge_response[i] != challenge[i] + 1024) {
+      // Authentication failed, send response indicating failure to the fob
+      MESSAGE_PACKET auth_response;
+      auth_response.message_len = 1;
+      auth_response.magic = AUTHENTICATE_MAGIC;
+      uint8_t auth_buffer[1];
+      auth_buffer[0] = 0;
+      auth_response.buffer = auth_buffer;
+      send_board_message(&auth_response);
+      return;
+    }
+  }
+
+  // Authentication successful, send response indicating success to the fob
+  MESSAGE_PACKET auth_response;
+  auth_response.message_len = 1;
+  auth_response.magic = AUTHENTICATE_MAGIC;
+  uint8_t auth_buffer[1];
+  auth_buffer[0] = 1;
+  auth_response.buffer = auth_buffer;
+  send_board_message(&auth_response);
+  // Wait for unlock command from the fob
   receive_board_message_by_type(&message, UNLOCK_MAGIC);
 
-  // Pad payload to a string
-  message.buffer[message.message_len] = 0;
-
-  // If the data transfer is the password, unlock
-  if (!strcmp((char *)(message.buffer), (char *)pass)) {
-    uint8_t eeprom_message[64];
-    // Read last 64B of EEPROM
-    EEPROMRead((uint32_t *)eeprom_message, UNLOCK_EEPROM_LOC,
-               UNLOCK_EEPROM_SIZE);
-
-    // Get flag for boot reference design, and replace end of unlock message
-    // YOU ARE NOT ALLOWED TO DO THIS IN YOUR DESIGN
-    char flag[28];
-    for (int i = 0; aseiFuengleR[i]; i++) {
-        flag[i] = deobfuscate(aseiFuengleR[i], djFIehjkklIH[i]);
-        flag[i+1] = 0;
-    }
-
-    int j = UNLOCK_EEPROM_SIZE - 28;
-    for (int i = 0; i < 28; i++) {
-        eeprom_message[j] = (uint8_t)(flag[i]);
-        j++;
-    }
-
-    // Write out full flag if applicable
-    uart_write(HOST_UART, eeprom_message, UNLOCK_EEPROM_SIZE);
-
-    sendAckSuccess();
-
-    startCar();
-  } else {
-    sendAckFailure();
-  }
+  // Start the car
+  startCar();
 }
+
 
 /**
  * @brief Function that handles starting of car - feature list
