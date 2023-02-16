@@ -320,15 +320,62 @@ void enableFeature(FLASH_DATA *fob_state_ram)
  *
  * @param fob_state_ram pointer to the current fob state in ram
  */
+// void unlockCar(FLASH_DATA *fob_state_ram)
+// {
+//   if (fob_state_ram->paired == FLASH_PAIRED)
+//   {
+//     MESSAGE_PACKET message;
+//     message.message_len = 6;
+//     message.magic = UNLOCK_MAGIC;
+//     message.buffer = fob_state_ram->pair_info.password;
+//     send_board_message(&message);
+//   }
+// }
 void unlockCar(FLASH_DATA *fob_state_ram)
 {
   if (fob_state_ram->paired == FLASH_PAIRED)
   {
+    // Send a request for authentication to the car
     MESSAGE_PACKET message;
-    message.message_len = 6;
-    message.magic = UNLOCK_MAGIC;
-    message.buffer = fob_state_ram->pair_info.password;
+    message.message_len = 1;
+    message.magic = AUTHENTICATE_MAGIC;
+    uint8_t buffer[1];
+    buffer[0] = 0;
+    message.buffer = buffer;
     send_board_message(&message);
+
+    // Wait for response from the car containing a challenge
+    MESSAGE_PACKET response;
+    receive_board_message_by_type(&response, AUTHENTICATE_MAGIC);
+    uint8_t challenge[64];
+    memcpy(challenge, response.buffer, 64);
+
+    // Add 1024 to the challenge and send it back to the car as a response
+    for (int i = 0; i < 64; i++) {
+      challenge[i] += 1024;
+    }
+    encrypt(challenge);
+    MESSAGE_PACKET challenge_response;
+    challenge_response.message_len = 64;
+    challenge_response.magic = AUTHENTICATE_MAGIC;
+    challenge_response.buffer = challenge;
+    send_board_message(&challenge_response);
+
+    // Wait for response from the car indicating whether authentication was successful
+    MESSAGE_PACKET auth_response;
+    receive_board_message_by_type(&auth_response, AUTHENTICATE_MAGIC);
+    if (auth_response.buffer[0] == 1) {
+      // Authentication successful, send command to unlock car
+      MESSAGE_PACKET unlock_message;
+      unlock_message.message_len = 1;
+      unlock_message.magic = UNLOCK_MAGIC;
+      uint8_t unlock_buffer[1];
+      unlock_buffer[0] = 0;
+      unlock_message.buffer = unlock_buffer;
+      send_board_message(&unlock_message);
+    } else {
+      // Authentication failed, do not send command to unlock car
+    }
   }
 }
 

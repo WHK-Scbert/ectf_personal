@@ -4,7 +4,7 @@
         {
             "name": "Cortex Debug",
             "cwd": "${workspaceFolder}",
-            "executable": "../car_out/PAIR_AES.elf",
+            "executable": "../fob_out/Fob1.elf",
             "armToolchainPath": "/Applications/ArmGNUToolchain/12.2.rel1/arm-none-eabi/bin",
             "request": "launch",
             "type": "cortex-debug",
