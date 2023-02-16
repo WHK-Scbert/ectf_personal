@@ -167,7 +167,7 @@ void unlockCar(void) {
       auth_response.message_len = 1;
       auth_response.magic = AUTHENTICATE_MAGIC;
       uint8_t auth_buffer[1];
-      auth_buffer[0] = 0;
+      auth_buffer[0] = 1;
       auth_response.buffer = auth_buffer;
       send_board_message(&auth_response);
       return;
