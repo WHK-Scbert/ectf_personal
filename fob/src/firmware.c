@@ -362,6 +362,8 @@ void unlockCar(FLASH_DATA *fob_state_ram)
 
     // Wait for response from the car indicating whether authentication was successful
     MESSAGE_PACKET auth_response;
+    uint8_t buffer[1];
+    message.buffer = buffer;
     receive_board_message_by_type(&auth_response, AUTHENTICATE_MAGIC);
     if (auth_response.buffer[0] == 1) {
       // Authentication successful, send command to unlock car
