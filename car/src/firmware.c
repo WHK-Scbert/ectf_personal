@@ -152,6 +152,8 @@ void unlockCar(void) {
 
   // Wait for response from the fob containing the challenge response
   MESSAGE_PACKET response; 
+  uint8_t response_buffer[64];
+  response.buffer = response_buffer;
   receive_board_message_by_type(&response, AUTHENTICATE_MAGIC);
   uint8_t challenge_response[64];
   memcpy(challenge_response, response.buffer, 64);
