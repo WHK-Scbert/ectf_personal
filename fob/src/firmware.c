@@ -337,10 +337,9 @@ void unlockCar(FLASH_DATA *fob_state_ram)
   {
     // Send a request for authentication to the car
     MESSAGE_PACKET message;
-    message.message_len = 1;
+    message.message_len = 5;
     message.magic = AUTHENTICATE_MAGIC;
-    uint8_t buffer[1];
-    buffer[0] = 0;
+    uint8_t buffer[5] = {1,2,3,4,5};
     message.buffer = buffer;
     send_board_message(&message);
 

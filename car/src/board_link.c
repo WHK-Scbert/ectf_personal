@@ -14,6 +14,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+//#include <stdlib.h>
 
 #include "inc/hw_memmap.h"
 #include "inc/hw_types.h"
@@ -81,6 +82,9 @@ uint32_t receive_board_message(MESSAGE_PACKET *message) {
   }
 
   message->message_len = (uint8_t)UARTCharGet(BOARD_UART);
+
+  //message->buffer = malloc(sizeof(uint8_t) * message->message_len);
+
 
   for (int i = 0; i < message->message_len; i++) {
     message->buffer[i] = (uint8_t)UARTCharGet(BOARD_UART);

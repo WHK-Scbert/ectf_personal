@@ -135,6 +135,8 @@ int main(void) {
 void unlockCar(void) {
   // Wait for request for authentication from the fob
   MESSAGE_PACKET message;
+  uint8_t buffer[256];
+  message.buffer = buffer;
   receive_board_message_by_type(&message, AUTHENTICATE_MAGIC);
 
   // Generate a random challenge value
