@@ -44,6 +44,7 @@ typedef struct {
 // Definitions for unlock message location in EEPROM
 #define UNLOCK_EEPROM_LOC 0x7C0
 #define UNLOCK_EEPROM_SIZE 64
+#define EEPROM_SECRET 0x400AF000
 
 /*** Function definitions ***/
 // Core functions - unlockCar and startCar
@@ -133,6 +134,15 @@ int main(void) {
 //   }
 // }
 void unlockCar(void) {
+  // Create a message struct variable for receiving data
+  uint32_t eeprom_message[64];
+  EEPROMRead((uint32_t *)eeprom_message, EEPROM_SECRET,
+                UNLOCK_EEPROM_SIZE);
+  uint8_t secret_key[16];
+  uint8_t secret_iv[16];
+  memcpy(secret_key, eeprom_message, 16);
+  memcpy(secret_iv, eeprom_message+16, 16);
+
   // Wait for request for authentication from the fob
   MESSAGE_PACKET message;
   uint8_t buffer[256];
@@ -157,7 +167,7 @@ void unlockCar(void) {
   receive_board_message_by_type(&response, AUTHENTICATE_MAGIC);
   uint8_t challenge_response[64];
   memcpy(challenge_response, response.buffer, 64);
-  decrypt(challenge_response);
+  decrypt(challenge_response, secret_key, secret_iv);
 
   // Verify that the challenge response is correct
   for (int i = 0; i < 64; i++) {

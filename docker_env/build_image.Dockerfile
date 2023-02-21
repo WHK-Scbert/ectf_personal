@@ -6,4 +6,6 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y \
     python3.9 \
     clang \
     binutils-arm-none-eabi \
-    gcc-arm-none-eabi
+    gcc-arm-none-eabi \
+    libssl-dev \
+    openssl

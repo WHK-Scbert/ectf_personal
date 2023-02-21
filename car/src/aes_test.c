@@ -6,7 +6,7 @@
  *
  * @param in pointer to the beginning of a string
  */
-void encrypt(uint8_t *in)
+void encrypt(uint8_t *in, uint8_t *secret_key, uint8_t *secret_iv)
 {
     struct AES_ctx ctx;
     AES_init_ctx_iv(&ctx, secret_key, secret_iv);
@@ -20,7 +20,7 @@ void encrypt(uint8_t *in)
  *
  * @param in pointer to the beginning of an encrypted string
  */
-void decrypt(uint8_t *in)
+void decrypt(uint8_t *in, uint8_t *secret_key, uint8_t *secret_iv)
 {
     struct AES_ctx ctx;
     AES_init_ctx_iv(&ctx, secret_key, secret_iv);

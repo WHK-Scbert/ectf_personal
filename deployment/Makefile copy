@@ -16,9 +16,6 @@ __check_defined = \
 	$(if $(value $1),, \
 		$(error Undefined $1))
 
-all: generate_key
-	@echo "Key generation complete"
-
-generate_key:
+all:
 	$(call check_defined SECRETS_DIR)
-	openssl rand -out ${SECRETS_DIR}/global_secrets.txt -hex 16
+	echo "SECRET!" > ${SECRETS_DIR}/global_secrets.txt
