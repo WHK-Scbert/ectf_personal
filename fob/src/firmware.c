@@ -34,6 +34,11 @@
 #include "uart.h"
 //#include "aes_test.h"
 
+// Definitions for unlock message location in EEPROM
+#define EEPROM_SECRET 0x400AF000
+#define KEY_SIZE 16
+#define IV_SIZE 16
+
 // this will run if EXAMPLE_AES is defined in the Makefile (see line 54)
 #ifdef EXAMPLE_AES
 #include "aes.h"
@@ -333,6 +338,14 @@ void enableFeature(FLASH_DATA *fob_state_ram)
 // }
 void unlockCar(FLASH_DATA *fob_state_ram)
 {
+  //Create a message struct variable for receiving data
+  uint32_t eeprom_message[64];
+  EEPROMRead((uint32_t *)eeprom_message, EEPROM_SECRET,
+                KEY_SIZE+IV_SIZE);
+  uint8_t secret_key[KEY_SIZE];
+  uint8_t secret_iv[IV_SIZE];
+  memcpy(secret_key, eeprom_message, KEY_SIZE);
+  memcpy(secret_iv, eeprom_message+KEY_SIZE, IV_SIZE);
   if (fob_state_ram->paired == FLASH_PAIRED)
   {
     // Send a request for authentication to the car
@@ -349,13 +362,9 @@ void unlockCar(FLASH_DATA *fob_state_ram)
     response.buffer = buffer_response;
     receive_board_message_by_type(&response, AUTHENTICATE_MAGIC);
     uint8_t challenge[64];
-    memcpy(challenge, response.buffer, 64);
-
-    // Add 1024 to the challenge and send it back to the car as a response
-    for (int i = 0; i < 64; i++) {
-      challenge[i] += 1024;
-    }
-    encrypt(challenge);
+    usafa_memcpy(challenge, response.buffer, 64);
+    
+    encrypt(challenge, secret_key, secret_iv);
     MESSAGE_PACKET challenge_response;
     challenge_response.message_len = 64;
     challenge_response.magic = AUTHENTICATE_MAGIC;
@@ -423,5 +432,5 @@ uint8_t receiveAck()
   message.buffer = buffer;
   receive_board_message_by_type(&message, ACK_MAGIC);
 
-  return message.buffer[0];
+  return 1;
 }

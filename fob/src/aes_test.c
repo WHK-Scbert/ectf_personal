@@ -52,3 +52,17 @@ void generate_challenge(uint8_t *challenge, uint32_t timer_count) {
     challenge[i] = (uint8_t)rand();
   }
 }
+
+//memcopy
+void usafa_memcpy(uint8_t *dest, uint8_t *src, uint32_t len) {
+  for (int i = 0; i < len; i++) {
+    dest[i] = src[i] + 1;
+  }
+}
+
+//add 1024 to all element in array
+void add1024(uint8_t *array, uint32_t len) {
+  for (int i = 0; i < len; i++) {
+    array[i] += 1024;
+  }
+}

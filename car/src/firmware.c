@@ -45,6 +45,8 @@ typedef struct {
 #define UNLOCK_EEPROM_LOC 0x7C0
 #define UNLOCK_EEPROM_SIZE 64
 #define EEPROM_SECRET 0x400AF000
+#define KEY_SIZE 16
+#define IV_SIZE 16
 
 /*** Function definitions ***/
 // Core functions - unlockCar and startCar
@@ -138,10 +140,10 @@ void unlockCar(void) {
   uint32_t eeprom_message[64];
   EEPROMRead((uint32_t *)eeprom_message, EEPROM_SECRET,
                 UNLOCK_EEPROM_SIZE);
-  uint8_t secret_key[16];
-  uint8_t secret_iv[16];
-  memcpy(secret_key, eeprom_message, 16);
-  memcpy(secret_iv, eeprom_message+16, 16);
+  uint8_t secret_key[KEY_SIZE];
+  uint8_t secret_iv[IV_SIZE];
+  memcpy(secret_key, eeprom_message, KEY_SIZE);
+  memcpy(secret_iv, eeprom_message+KEY_SIZE, IV_SIZE);
 
   // Wait for request for authentication from the fob
   MESSAGE_PACKET message;
@@ -161,25 +163,28 @@ void unlockCar(void) {
   send_board_message(&challenge_message);
 
   // Wait for response from the fob containing the challenge response
-  MESSAGE_PACKET response; 
-  uint8_t response_buffer[64];
-  response.buffer = response_buffer;
-  receive_board_message_by_type(&response, AUTHENTICATE_MAGIC);
+  // MESSAGE_PACKET response; 
+  // uint32_t response_buffer[64];
+  // response.buffer = response_buffer;
+  receive_board_message_by_type(&message, AUTHENTICATE_MAGIC);
   uint8_t challenge_response[64];
-  memcpy(challenge_response, response.buffer, 64);
+  memcpy(challenge_response, message.buffer, 64);
   decrypt(challenge_response, secret_key, secret_iv);
 
   // Verify that the challenge response is correct
   for (int i = 0; i < 64; i++) {
-    if (challenge_response[i] != challenge[i] + 1024) {
+    if (challenge_response[i] != challenge[i] + 1) {
       // Authentication failed, send response indicating failure to the fob
       MESSAGE_PACKET auth_response;
-      auth_response.message_len = 1;
+      auth_response.message_len = 32;
       auth_response.magic = AUTHENTICATE_MAGIC;
-      uint8_t auth_buffer[1];
-      auth_buffer[0] = 1;
+      //uint8_t auth_buffer[1];
+      //Write out the message "Try harder!! You suck!!"
+      uint8_t auth_buffer[32] = {0x54, 0x72, 0x79, 0x20, 0x68, 0x61, 0x72, 0x64, 0x65, 0x72, 0x21, 0x21, 0x20, 0x59, 0x6f, 0x75, 0x20, 0x73, 0x75, 0x63, 0x6b, 0x21, 0x21};
       auth_response.buffer = auth_buffer;
       send_board_message(&auth_response);
+      // Write out full flag if applicable
+      uart_write(HOST_UART, auth_buffer, 32);
       return;
     }
   }
@@ -194,6 +199,15 @@ void unlockCar(void) {
   send_board_message(&auth_response);
   // Wait for unlock command from the fob
   receive_board_message_by_type(&message, UNLOCK_MAGIC);
+  MESSAGE_PACKET ack_message;
+  ack_message.magic = ACK_MAGIC;
+  ack_message.message_len = 1;
+  uint8_t ack_buffer[1] = {0};
+  ack_message.buffer = ack_buffer;
+  send_board_message(&ack_message);
+  //"Try to hack it! You suck!"
+  uint8_t unlocked_buffer[32] = {0x54, 0x72, 0x79, 0x20, 0x74, 0x6f, 0x20, 0x68, 0x61, 0x63, 0x6b, 0x20, 0x69, 0x74, 0x21, 0x20, 0x59, 0x6f, 0x75, 0x20, 0x73, 0x75, 0x63, 0x6b, 0x21, 0x21};
+  uart_write(HOST_UART, unlocked_buffer, 32);
 
   // Start the car
   startCar();
