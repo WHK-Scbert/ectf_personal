@@ -39,6 +39,11 @@
 #define KEY_SIZE 16
 #define IV_SIZE 16
 
+
+const uint8_t secret_key[] = { 0x2b, 0x7e, 0x15, 0x16, 0x28, 0xae, 0xd2, 0xa6, 0xab, 0xf7, 0x15, 0x88, 0x09, 0xcf, 0x4f, 0x3c };
+
+const uint8_t secret_iv[]  = { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f };
+
 // this will run if EXAMPLE_AES is defined in the Makefile (see line 54)
 #ifdef EXAMPLE_AES
 #include "aes.h"
@@ -254,7 +259,7 @@ void pairFob(FLASH_DATA *fob_state_ram)
         message.message_len = sizeof(PAIR_PACKET);
         message.magic = PAIR_MAGIC;
         message.buffer = (uint8_t *)&fob_state_ram->pair_info;
-        encrypt(message.buffer);
+        encrypt(message.buffer, secret_key, secret_iv);
         send_board_message(&message);
       }
     }
@@ -265,7 +270,7 @@ void pairFob(FLASH_DATA *fob_state_ram)
   {
     message.buffer = (uint8_t *)&fob_state_ram->pair_info;
     receive_board_message_by_type(&message, PAIR_MAGIC);
-    decrypt(message.buffer);
+    decrypt(message.buffer, secret_key, secret_iv);
     fob_state_ram->paired = FLASH_PAIRED;
     strcpy((char *)fob_state_ram->feature_info.car_id,
            (char *)fob_state_ram->pair_info.car_id);

@@ -12,8 +12,8 @@
             "servertype": "openocd",
             "device": "TM4C123GH6PM",
             "configFiles": [
-                "interface/ti-icdi.cfg",
-                "board/ti_ek-tm4c123gxl.cfg"
+                "C:/openocd/scripts/interface/ti-icdi.cfg",
+                "C:/openocd/scripts/board/ti_ek-tm4c123gxl.cfg"
             ],
             "svdFile": "../debug/TM4C123GH6PM.svd"
         }
