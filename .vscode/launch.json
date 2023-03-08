@@ -1,17 +1,21 @@
 {
-    // Use IntelliSense to learn about possible attributes.
-    // Hover to view descriptions of existing attributes.
-    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
         {
             "name": "Cortex Debug",
             "cwd": "${workspaceFolder}",
-            "executable": "./bin/executable.elf",
+            "executable": "../car_out/Car1.elf",
+            "armToolchainPath": "C:/gcc-arm-none-eabi/bin/",
             "request": "launch",
             "type": "cortex-debug",
             "runToEntryPoint": "main",
-            "servertype": "jlink"
+            "servertype": "openocd",
+            "device": "TM4C123GH6PM",
+            "configFiles": [
+                "interface/ti-icdi.cfg",
+                "board/ti_ek-tm4c123gxl.cfg"
+            ],
+            "svdFile": "../debug/TM4C123GH6PM.svd"
         }
     ]
 }

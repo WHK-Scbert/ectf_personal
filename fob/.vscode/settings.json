@@ -1,5 +1,0 @@
-{
-    "cortex-debug.openocdPath": "/opt/homebrew/bin/openocd",
-    "cortex-debug.gdbPath": "/Applications/ArmGNUToolchain/12.2.rel1/arm-none-eabi/bin/arm-none-eabi-gdb",
-    "C_Cpp.errorSquiggles": "enabled"
-}
